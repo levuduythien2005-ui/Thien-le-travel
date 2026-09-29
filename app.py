@@ -34,7 +34,7 @@ DATA_FILE = "danh_sach_dang_ky.csv"
 
 # 3. Thanh Điều Hướng Sidebar
 st.sidebar.title("📌 Danh Mục")
-menu = st.sidebar.radio("Chọn chức năng:", [" Trang Chủ & Danh Sách Tour", "📝 Đăng Ký Tour", "📊 Danh Sách Đã Đăng Ký"])
+menu = st.sidebar.radio("Chọn chức năng:", ["Trang Chủ & Danh Sách Tour", "📝 Đăng Ký Tour", "📊 Danh Sách Đã Đăng Ký"])
 
 # HEADER
 st.title("🌊 VŨNG TÀU TRAVEL")
@@ -42,7 +42,7 @@ st.caption("Hệ thống đặt tour du lịch Vũng Tàu trực tuyến nhanh c
 st.divider()
 
 # TAB 1: TRANG CHỦ & DANH SÁCH TOUR
-if menu == " Trang Chủ & Danh Sách Tour":
+if menu == "Trang Chủ & Danh Sách Tour":
     st.subheader("🌴 Các Tour Du Lịch Nổi Bật")
     
     col1, col2 = st.columns([2, 1])
@@ -54,7 +54,7 @@ if menu == " Trang Chủ & Danh Sách Tour":
             with st.container():
                 c1, c2 = st.columns([1, 2])
                 with c1:
-                    st.image(tour_info["image"], use_column_width=True)
+                    st.image(tour_info["image"], use_container_width=True)
                 with c2:
                     st.markdown(f"### {tour_name}")
                     st.write(f"**Mô tả:** {tour_info['description']}")
@@ -128,7 +128,7 @@ elif menu == "📊 Danh Sách Đã Đăng Ký":
         
         st.dataframe(df, use_container_width=True)
         
-        # Nút tải file Excel/CSV
+        # Nút tải file CSV
         csv_data = df.to_csv(index=False, encoding='utf-8-sig')
         st.download_button(
             label="📥 Tải báo cáo CSV",
