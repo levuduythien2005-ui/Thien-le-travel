@@ -1,203 +1,140 @@
-
 import streamlit as st
+import pandas as pd
 from datetime import date
+import os
 
+# 1. Cấu hình trang
 st.set_page_config(
-    page_title="Vũng Tàu Travel",
+    page_title="Vũng Tàu Travel - Đăng Ký Tour",
     page_icon="🌊",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# ---------- DATA ----------
+# 2. Dữ liệu các tour mẫu tại Vũng Tàu
 TOURS = {
-    "Vũng Tàu 1 ngày – Biển, Núi & Thành phố": {
-        "price_adult": 450000,
-        "price_child": 300000,
-        "image": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=1200&q=80",
-        "schedule": [
-            "07:00 – Đón khách tại điểm hẹn",
-            "08:00 – Tham quan Tượng Chúa Kitô Vua",
-            "10:00 – Bãi Sau, tự do chụp ảnh và vui chơi",
-            "11:30 – Ăn trưa",
-            "13:00 – Bạch Dinh",
-            "15:00 – Mũi Nghinh Phong",
-            "16:30 – Khởi hành về điểm trả khách",
-        ],
-        "description": "Hành trình khám phá những điểm nổi bật của Vũng Tàu trong một ngày."
+    "Tour 1: Khám phá Biển & Di tích Vũng Tàu (1 Ngày)": {
+        "price": 500000,
+        "description": "Tham quan Tượng Chúa Kito, Ngọn Hải Đăng, Bạch Dinh, tắm biển Bãi Sau.",
+        "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600"
     },
-    "Vũng Tàu 2 ngày 1 đêm – Trải nghiệm biển": {
-        "price_adult": 1250000,
-        "price_child": 850000,
-        "image": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=80",
-        "schedule": [
-            "Ngày 1: Đón khách – Bãi Sau – ăn trưa – Bạch Dinh – Mũi Nghinh Phong",
-            "Buổi tối: Tự do khám phá thành phố biển",
-            "Ngày 2: Ăn sáng – tham quan Núi Lớn – mua đặc sản",
-            "11:30 – Ăn trưa và trả phòng",
-            "14:00 – Khởi hành về điểm trả khách",
-        ],
-        "description": "Phù hợp cho gia đình, nhóm bạn và đoàn lớp muốn có thêm thời gian nghỉ dưỡng."
+    "Tour 2: Trải nghiệm Ẩm thực & Mũi Nghinh Phong (2 Ngày 1 Đêm)": {
+        "price": 1200000,
+        "description": "Thưởng thức hải sản Đêm, ngắm bình minh Mũi Nghinh Phong, trải nghiệm chèo SUP.",
+        "image": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600"
     },
-    "Vũng Tàu – Hồ Tràm 2 ngày 1 đêm": {
-        "price_adult": 1650000,
-        "price_child": 1100000,
-        "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-        "schedule": [
-            "Ngày 1: Đón khách – Vũng Tàu – ăn trưa – tham quan thành phố",
-            "15:00 – Di chuyển đến Hồ Tràm",
-            "18:00 – Nhận phòng và tự do nghỉ ngơi",
-            "Ngày 2: Ăn sáng – vui chơi biển – ăn trưa",
-            "14:00 – Khởi hành về Vũng Tàu và trả khách",
-        ],
-        "description": "Kết hợp tham quan Vũng Tàu và nghỉ dưỡng tại khu vực Hồ Tràm."
+    "Tour 3: Nghỉ dưỡng Cao cấp Long Hải - Vũng Tàu (3 Ngày 2 Đêm)": {
+        "price": 2500000,
+        "description": "Trọn gói Resort 4 sao, ngâm khoáng nóng Bình Châu, BBQ hải sản ven biển.",
+        "image": "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=600"
     }
 }
 
-# ---------- STYLE ----------
-st.markdown("""
-<style>
-    .main {
-        background: #f7fbff;
-    }
-    .hero {
-        padding: 2.2rem;
-        border-radius: 22px;
-        background: linear-gradient(120deg, #0077b6, #00b4d8);
-        color: white;
-        margin-bottom: 1.5rem;
-    }
-    .hero h1 {
-        font-size: 3rem;
-        margin-bottom: .5rem;
-    }
-    .hero p {
-        font-size: 1.15rem;
-    }
-    .tour-card {
-        padding: 1rem;
-        border: 1px solid #dceaf2;
-        border-radius: 18px;
-        background: white;
-        min-height: 260px;
-        box-shadow: 0 5px 18px rgba(0,0,0,.05);
-    }
-    .price {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #0077b6;
-    }
-    .small-muted {
-        color: #667085;
-        font-size: .9rem;
-    }
-</style>
-""", unsafe_allow_html=True)
+# File lưu trữ dữ liệu đăng ký
+DATA_FILE = "danh_sach_dang_ky.csv"
 
-# ---------- HEADER ----------
-st.markdown("""
-<div class="hero">
-    <h1>🌊 Vũng Tàu Travel</h1>
-    <p>Khám phá thành phố biển – Đặt tour nhanh chóng, đơn giản và thuận tiện.</p>
-</div>
-""", unsafe_allow_html=True)
+# 3. Thanh Điều Hướng Sidebar
+st.sidebar.title("📌 Danh Mục")
+menu = st.sidebar.radio("Chọn chức năng:", [" Trang Chủ & Danh Sách Tour", "📝 Đăng Ký Tour", "📊 Danh Sách Đã Đăng Ký"])
 
-# ---------- SIDEBAR ----------
-with st.sidebar:
-    st.header("🔎 Tìm tour")
-    selected_tour = st.selectbox("Chọn chương trình", list(TOURS.keys()))
-    st.divider()
-    st.markdown("### 📞 Liên hệ")
-    st.write("☎️ 0900 123 456")
-    st.write("📧 vungtautravel@gmail.com")
-    st.write("📍 Vũng Tàu, Bà Rịa – Vũng Tàu")
-
-tour = TOURS[selected_tour]
-
-# ---------- TOUR DETAIL ----------
-left, right = st.columns([1.35, 1])
-
-with left:
-    st.image(tour["image"], use_container_width=True)
-
-with right:
-    st.subheader(selected_tour)
-    st.write(tour["description"])
-    st.markdown(
-        f'<div class="price">Người lớn: {tour["price_adult"]:,}đ/người</div>',
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        f'<div class="price">Trẻ em: {tour["price_child"]:,}đ/người</div>',
-        unsafe_allow_html=True
-    )
-
+# HEADER
+st.title("🌊 VŨNG TÀU TRAVEL")
+st.caption("Hệ thống đặt tour du lịch Vũng Tàu trực tuyến nhanh chóng & tiện lợi")
 st.divider()
 
-st.subheader("🗺️ Lịch trình")
-for item in tour["schedule"]:
-    st.write("• " + item)
+# TAB 1: TRANG CHỦ & DANH SÁCH TOUR
+if menu == " Trang Chủ & Danh Sách Tour":
+    st.subheader("🌴 Các Tour Du Lịch Nổi Bật")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        search_kw = st.text_input("🔍 Tìm kiếm tour:", placeholder="Nhập tên tour hoặc từ khóa...")
+    
+    for tour_name, tour_info in TOURS.items():
+        if search_kw.lower() in tour_name.lower() or search_kw.lower() in tour_info["description"].lower():
+            with st.container():
+                c1, c2 = st.columns([1, 2])
+                with c1:
+                    st.image(tour_info["image"], use_column_width=True)
+                with c2:
+                    st.markdown(f"### {tour_name}")
+                    st.write(f"**Mô tả:** {tour_info['description']}")
+                    st.markdown(f"**Giá tour:** <span style='color:red; font-size:18px; font-weight:bold;'>{tour_info['price']:,} VNĐ / khách</span>", unsafe_allow_html=True)
+                    st.info("👉 Vào mục **'Đăng Ký Tour'** ở menu bên trái để đặt tour này.")
+                st.divider()
 
-st.divider()
+# TAB 2: FORM ĐĂNG KÝ
+elif menu == "📝 Đăng Ký Tour":
+    st.subheader("📝 Form Đăng Ký Tour Du Lịch")
+    
+    with st.form("booking_form"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            full_name = st.text_input("Họ và tên *", placeholder="Nguyễn Văn A")
+            phone = st.text_input("Số điện thoại *", placeholder="0901234567")
+            email = st.text_input("Email", placeholder="example@gmail.com")
+            
+        with col2:
+            selected_tour = st.selectbox("Chọn Tour du lịch *", list(TOURS.keys()))
+            travel_date = st.date_input("Ngày khởi hành *", min_value=date.today())
+            num_people = st.number_input("Số lượng khách *", min_value=1, max_value=50, value=1)
+            
+        note = st.text_area("Yêu cầu đặc biệt (nếu có):", placeholder="Ăn chay, phòng đơn, hỗ trợ đưa đón...")
+        
+        # TÍNH TIỀN
+        unit_price = TOURS[selected_tour]["price"]
+        total_price = unit_price * num_people
+        
+        st.markdown(f"### 💳 Tổng chi phí dự kiến: :red[{total_price:,} VNĐ]")
+        
+        submit_button = st.form_submit_button("✅ Xác Nhận Đăng Ký")
+        
+        if submit_button:
+            if not full_name or not phone:
+                st.error("⚠️ Vui lòng điền đầy đủ Họ tên và Số điện thoại!")
+            else:
+                # Lưu dữ liệu
+                new_data = pd.DataFrame([{
+                    "Họ tên": full_name,
+                    "Số điện thoại": phone,
+                    "Email": email,
+                    "Tour": selected_tour,
+                    "Ngày đi": str(travel_date),
+                    "Số người": num_people,
+                    "Tổng tiền (VNĐ)": total_price,
+                    "Ghi chú": note
+                }])
+                
+                if os.path.exists(DATA_FILE):
+                    new_data.to_csv(DATA_FILE, mode='a', header=False, index=False, encoding='utf-8-sig')
+                else:
+                    new_data.to_csv(DATA_FILE, index=False, encoding='utf-8-sig')
+                
+                st.success(f"🎉 Đăng ký thành công! Cảm ơn {full_name} đã lựa chọn Vũng Tàu Travel.")
+                st.balloons()
 
-# ---------- REGISTRATION ----------
-st.subheader("📝 Đăng ký tour")
-
-with st.form("tour_registration"):
-    c1, c2 = st.columns(2)
-
-    with c1:
-        full_name = st.text_input("Họ và tên *")
-        phone = st.text_input("Số điện thoại *")
-        email = st.text_input("Email")
-        departure_date = st.date_input(
-            "Ngày khởi hành *",
-            min_value=date.today()
+# TAB 3: QUẢN LÝ ĐƠN ĐĂNG KÝ
+elif menu == "📊 Danh Sách Đã Đăng Ký":
+    st.subheader("📊 Quản Lý Đơn Đăng Ký (Dành cho Giáo viên / Admin)")
+    
+    if os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE, encoding='utf-8-sig')
+        
+        # Thống kê nhanh
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Tổng lượt đăng ký", len(df))
+        m2.metric("Tổng số khách", df["Số người"].sum() if "Số người" in df else 0)
+        m3.metric("Tổng doanh thu", f"{df['Tổng tiền (VNĐ)'].sum():,} VNĐ" if "Tổng tiền (VNĐ)" in df else "0 VNĐ")
+        
+        st.dataframe(df, use_container_width=True)
+        
+        # Nút tải file Excel/CSV
+        csv_data = df.to_csv(index=False, encoding='utf-8-sig')
+        st.download_button(
+            label="📥 Tải báo cáo CSV",
+            data=csv_data,
+            file_name="danh_sach_dang_ky_tour.csv",
+            mime="text/csv"
         )
-
-    with c2:
-        adults = st.number_input("Số người lớn", min_value=1, max_value=100, value=1)
-        children = st.number_input("Số trẻ em", min_value=0, max_value=100, value=0)
-        pickup = st.text_input("Điểm đón")
-        note = st.text_area("Ghi chú / yêu cầu đặc biệt")
-
-    submitted = st.form_submit_button("🚀 GỬI ĐĂNG KÝ", use_container_width=True)
-
-# ---------- RESULT ----------
-if submitted:
-    if not full_name.strip() or not phone.strip():
-        st.error("Vui lòng nhập đầy đủ họ tên và số điện thoại.")
     else:
-        total = adults * tour["price_adult"] + children * tour["price_child"]
-
-        st.success("🎉 Đăng ký tour thành công!")
-
-        st.markdown("### 📋 Thông tin đăng ký")
-        result_col1, result_col2 = st.columns(2)
-
-        with result_col1:
-            st.write(f"**Khách hàng:** {full_name}")
-            st.write(f"**Điện thoại:** {phone}")
-            st.write(f"**Email:** {email if email else 'Chưa cung cấp'}")
-            st.write(f"**Tour:** {selected_tour}")
-
-        with result_col2:
-            st.write(f"**Ngày khởi hành:** {departure_date.strftime('%d/%m/%Y')}")
-            st.write(f"**Người lớn:** {adults}")
-            st.write(f"**Trẻ em:** {children}")
-            st.write(f"**Điểm đón:** {pickup if pickup else 'Chưa cung cấp'}")
-
-        st.info(f"💰 **Tổng tạm tính: {total:,} VNĐ**")
-
-        if note:
-            st.write(f"**Ghi chú:** {note}")
-
-        st.warning(
-            "Đây là bản demo đăng ký tour. Để sử dụng thực tế, "
-            "có thể kết nối dữ liệu với Google Sheets, Firebase, Supabase "
-            "hoặc cơ sở dữ liệu riêng."
-        )
-
-# ---------- FOOTER ----------
-st.divider()
-st.caption("© 2026 Vũng Tàu Travel | Web app đăng ký tour du lịch")
+        st.info("Chưa có lượt đăng ký nào trong hệ thống.")
